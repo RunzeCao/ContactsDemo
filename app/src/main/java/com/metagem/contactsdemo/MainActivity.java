@@ -16,15 +16,23 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_READ_CONTACTS_PERMISSIONS = 1;
-    private CursorLoader loader;
+    private Uri contactData;
+    private List<MGemContact> mGemContacts = new ArrayList<>();
+    private MGemContactAdapter contactAdapter;
+    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,9 +42,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             public void onClick(View v) {
                 hasReadContactsPermission();
-
             }
         });
+         recyclerView = (RecyclerView) findViewById(R.id.recycle);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+        recyclerView.setLayoutManager(linearLayoutManager);
+
     }
 
     @Override
@@ -59,20 +71,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
         switch (resultCode) {
             case RESULT_OK:
                 switch (requestCode) {
                     case 1:
                         if (data != null) {
-                            Uri contactData = data.getData();
+                            contactData = data.getData();
                             Log.d(TAG, "onActivityResult0: " + contactData);
-                            Bundle bundle = new Bundle();
-                            bundle.putString("uri", contactData.toString());
                             LoaderManager manager = getLoaderManager();
-                            manager.initLoader(0, bundle, this);
+                            manager.initLoader(0, null, this);
                         }
-
                         break;
                 }
                 break;
@@ -82,19 +90,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        Uri uri = Uri.parse(args.getString("uri"));
-        Log.d(TAG, "onCreateLoader: " + uri.toString());
-        loader = new CursorLoader(this, uri, null, null, null, null);
-        return loader;
+        return new CursorLoader(this, contactData, null, null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 
         String phoneNumber = "";
-        String name = "";
+
         if (cursor.moveToFirst()) {
-            name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+            String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
             String hasPhone = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
             String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
             if (hasPhone.equalsIgnoreCase("1")) {
@@ -106,14 +111,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
                         ContactsContract.CommonDataKinds.Phone.CONTACT_ID
                                 + " = " + id, null, null);
-                while (phones.moveToNext()) {
-                    phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                if (phones != null) {
+                    while (phones.moveToNext()) {
+                        phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                    }
+                    phones.close();
                 }
-                phones.close();
             }
+
+            Uri imageUri = Uri.withAppendedPath(contactData, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
+
+           // mGemContacts.add(new MGemContact(name,phoneNumber,bitmap));
+            contactAdapter = new MGemContactAdapter(this,mGemContacts);
+            recyclerView.setAdapter(contactAdapter);
+            // loadContactPhoto(imageUri);
+            //iv.setImageBitmap(getContactPhoto(this, id, R.mipmap.ic_launcher));
+
             Log.d(TAG, "onLoadFinished: " + "联系人：" + name + "号码：" + phoneNumber);
         }
     }
+
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
@@ -131,17 +148,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_CODE_READ_CONTACTS_PERMISSIONS);
                     }
                 });
-                return;
+            } else {
+                ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_CODE_READ_CONTACTS_PERMISSIONS);
             }
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, REQUEST_CODE_READ_CONTACTS_PERMISSIONS);
-            return;
+        } else {
+            Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+            MainActivity.this.startActivityForResult(intent, 1);
         }
-        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
-        MainActivity.this.startActivityForResult(intent, 1);
 
 
     }
-
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
         new AlertDialog.Builder(MainActivity.this)
                 .setMessage(message)
@@ -150,4 +166,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 .create()
                 .show();
     }
+
+
 }

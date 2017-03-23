@@ -12,4 +12,9 @@
         android:layout_height="wrap_content"
         android:text="选择联系人" />
 
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycle"
+        android:scrollbars="none"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
 </LinearLayout>

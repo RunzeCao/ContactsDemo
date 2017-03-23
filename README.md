@@ -1,6 +1,6 @@
 # ContactsDemo
 
-## 6.0运行时权限问题 
+### 6.0运行时权限问题 
 
 `shouldShowRequestPermissionRationale(Activity activity,String permission)` 
  
@@ -10,4 +10,13 @@
  
  小米手机点击拒绝限默认点击不在提醒
  
-## CursorLoader
+### CursorLoader
+
+### Bitmap和rawable的区别
+bitmap是一个位图格式，而drawable是android下的图形对象，可以理解为bitmap是drawable的一种
+
+### BitmapFactory的使用
+
+### RecycleView动态加载
+
+### 联系人数据库结构
