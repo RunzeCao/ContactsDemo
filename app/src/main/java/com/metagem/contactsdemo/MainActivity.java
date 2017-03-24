@@ -7,9 +7,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.pm.PackageManager;
+import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -22,6 +27,9 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,11 +52,13 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 hasReadContactsPermission();
             }
         });
-         recyclerView = (RecyclerView) findViewById(R.id.recycle);
+        recyclerView = (RecyclerView) findViewById(R.id.recycle);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerView.setLayoutManager(linearLayoutManager);
-
+        recyclerView.setHasFixedSize(true);
+        contactAdapter = new MGemContactAdapter(this, mGemContacts);
+        recyclerView.setAdapter(contactAdapter);
     }
 
     @Override
@@ -77,9 +87,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     case 1:
                         if (data != null) {
                             contactData = data.getData();
-                            Log.d(TAG, "onActivityResult0: " + contactData);
-                            LoaderManager manager = getLoaderManager();
-                            manager.initLoader(0, null, this);
+                            getLoaderManager().restartLoader(0, null, this);
                         }
                         break;
                 }
@@ -93,9 +101,37 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         return new CursorLoader(this, contactData, null, null, null, null);
     }
 
+
+    private static class MGemHandler extends Handler {
+        private final WeakReference<MainActivity> mActivity;
+        private List<MGemContact> mGemContacts;
+        private MGemContactAdapter contactAdapter;
+
+        MGemHandler(MainActivity activity, List<MGemContact> contacts, MGemContactAdapter mGemContactAdapter) {
+            mActivity = new WeakReference<MainActivity>(activity);
+            mGemContacts = contacts;
+            contactAdapter = mGemContactAdapter;
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            MainActivity activity = mActivity.get();
+            if (activity != null) {
+                switch (msg.what) {
+                    case 1:
+                        mGemContacts.add((MGemContact) msg.getData().getSerializable("1"));
+                        Log.d(TAG, "handleMessage:" + mGemContacts.size());
+                        //contactAdapter.setData(mGemContacts);
+                        contactAdapter.notifyDataSetChanged();
+                        break;
+                }
+            }
+        }
+    }
+
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-
+        Log.d(TAG, "onLoadFinished: ");
         String phoneNumber = "";
 
         if (cursor.moveToFirst()) {
@@ -109,8 +145,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
             if (Boolean.parseBoolean(hasPhone)) {
                 Cursor phones = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
-                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID
-                                + " = " + id, null, null);
+                        ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + id, null, null);
                 if (phones != null) {
                     while (phones.moveToNext()) {
                         phoneNumber = phones.getString(phones.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
@@ -120,15 +155,35 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
 
             Uri imageUri = Uri.withAppendedPath(contactData, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
-
-           // mGemContacts.add(new MGemContact(name,phoneNumber,bitmap));
-            contactAdapter = new MGemContactAdapter(this,mGemContacts);
-            recyclerView.setAdapter(contactAdapter);
-            // loadContactPhoto(imageUri);
+            Bitmap bitmap = loadContactPhoto(imageUri, 0);
+          /*  Message msg = new Message();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("1", new MGemContact(name, phoneNumber, bitmap));
+            msg.setData(bundle);
+            msg.what = 1;
+            new MGemHandler(this, mGemContacts, contactAdapter).sendMessage(msg);*/
+            mGemContacts.add(new MGemContact(name, phoneNumber, bitmap));
+            Log.d(TAG, "mGemContacts: " + mGemContacts.size());
+            contactAdapter.notifyDataSetChanged();
             //iv.setImageBitmap(getContactPhoto(this, id, R.mipmap.ic_launcher));
 
             Log.d(TAG, "onLoadFinished: " + "联系人：" + name + "号码：" + phoneNumber);
         }
+    }
+
+    private Bitmap loadContactPhoto(Uri imageUri, int imageSize) {
+        AssetFileDescriptor afd = null;
+        try {
+            afd = getContentResolver().openAssetFileDescriptor(imageUri, "r");
+            if (afd != null) {
+                // Reads and decodes the file to a Bitmap and scales it to the desired size
+                return decodeSampledBitmapFromDescriptor(afd.getFileDescriptor(), imageSize, imageSize);
+            }
+        } catch (FileNotFoundException e) {
+            //e.printStackTrace();
+            return BitmapFactory.decodeResource(getResources(), R.mipmap.no_photo);
+        }
+        return null;
     }
 
 
@@ -158,6 +213,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
 
     }
+
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
         new AlertDialog.Builder(MainActivity.this)
                 .setMessage(message)
@@ -167,5 +223,39 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 .show();
     }
 
+    public static Bitmap decodeSampledBitmapFromDescriptor(
+            FileDescriptor fileDescriptor, int reqWidth, int reqHeight) {
+
+        final BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight);
+        options.inJustDecodeBounds = false;
+        return BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
+    }
+
+    public static int calculateInSampleSize(BitmapFactory.Options options,
+                                            int reqWidth, int reqHeight) {
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int heightRatio = Math.round((float) height / (float) reqHeight);
+            final int widthRatio = Math.round((float) width / (float) reqWidth);
+
+            inSampleSize = heightRatio < widthRatio ? heightRatio : widthRatio;
+
+            final float totalPixels = width * height;
+
+            final float totalReqPixelsCap = reqWidth * reqHeight * 2;
+
+            while (totalPixels / (inSampleSize * inSampleSize) > totalReqPixelsCap) {
+                inSampleSize++;
+            }
+        }
+        return inSampleSize;
+    }
 
 }

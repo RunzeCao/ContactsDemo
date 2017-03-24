@@ -3,7 +3,9 @@ package com.metagem.contactsdemo;
 
 import android.graphics.Bitmap;
 
-class MGemContact {
+import java.io.Serializable;
+
+class MGemContact implements Serializable {
     private String name;
     private String number;
     private Bitmap photo;

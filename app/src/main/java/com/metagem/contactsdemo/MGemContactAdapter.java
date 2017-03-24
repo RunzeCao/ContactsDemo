@@ -1,7 +1,6 @@
 package com.metagem.contactsdemo;
 
 import android.content.Context;
-import android.graphics.drawable.BitmapDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,12 +9,17 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
 
-public class MGemContactAdapter extends RecyclerView.Adapter<MGemContactAdapter.ViewHolder> {
+
+class MGemContactAdapter extends RecyclerView.Adapter<MGemContactAdapter.ViewHolder> {
+
+    public static final int ITEM_ADD = 1;
+    public static final int ITEM_NORMAL = 2;
     private Context context;
     private List<MGemContact> mGemContacts;
 
-    public MGemContactAdapter(Context context, List<MGemContact> mGemContacts) {
+    MGemContactAdapter(Context context, List<MGemContact> mGemContacts) {
         this.context = context;
         this.mGemContacts = mGemContacts;
     }
@@ -28,7 +32,7 @@ public class MGemContactAdapter extends RecyclerView.Adapter<MGemContactAdapter.
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.textView.setText(mGemContacts.get(position).getName());
-        holder.textView.setCompoundDrawables(null,new BitmapDrawable(mGemContacts.get(position).getPhoto()),null,null );
+        holder.imageView.setImageBitmap(mGemContacts.get(position).getPhoto());
     }
 
     @Override
@@ -36,12 +40,25 @@ public class MGemContactAdapter extends RecyclerView.Adapter<MGemContactAdapter.
         return mGemContacts.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    class ViewHolder extends RecyclerView.ViewHolder {
         private TextView textView;
+        private CircleImageView imageView;
 
-        public ViewHolder(View itemView) {
+        ViewHolder(View itemView) {
             super(itemView);
             textView = (TextView) itemView.findViewById(R.id.recycle_tv);
+            imageView = (CircleImageView) itemView.findViewById(R.id.recycle_iv);
         }
     }
+
+    @Override
+    public int getItemViewType(int position) {
+        return super.getItemViewType(position);
+    }
+
+    /*   public void setData(List<MGemContact> list){
+        mGemContacts.addAll(list);
+        notifyDataSetChanged();
+    }*/
+
 }
