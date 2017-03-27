@@ -12,10 +12,9 @@ import java.util.List;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 
-class MGemContactAdapter extends RecyclerView.Adapter<MGemContactAdapter.ViewHolder> {
+class MGemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    public static final int ITEM_ADD = 1;
-    public static final int ITEM_NORMAL = 2;
+
     private Context context;
     private List<MGemContact> mGemContacts;
 
@@ -25,14 +24,28 @@ class MGemContactAdapter extends RecyclerView.Adapter<MGemContactAdapter.ViewHol
     }
 
     @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_item, parent, false));
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        return new NormalViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_item, parent, false));
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        holder.textView.setText(mGemContacts.get(position).getName());
-        holder.imageView.setImageBitmap(mGemContacts.get(position).getPhoto());
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
+
+        NormalViewHolder viewHolder = (NormalViewHolder) holder;
+        viewHolder.textView.setText(mGemContacts.get(position).getName());
+        viewHolder.circleImageView.setImageBitmap(mGemContacts.get(position).getPhoto());
+        if (mOnItemClickListener != null) {
+            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    mOnItemClickListener.onItemLongClick(v, holder.getAdapterPosition());
+                    return false;
+                }
+            });
+
+
+        }
+
     }
 
     @Override
@@ -40,25 +53,30 @@ class MGemContactAdapter extends RecyclerView.Adapter<MGemContactAdapter.ViewHol
         return mGemContacts.size();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder {
+    private class NormalViewHolder extends RecyclerView.ViewHolder {
         private TextView textView;
-        private CircleImageView imageView;
+        private CircleImageView circleImageView;
 
-        ViewHolder(View itemView) {
+        NormalViewHolder(View itemView) {
             super(itemView);
             textView = (TextView) itemView.findViewById(R.id.recycle_tv);
-            imageView = (CircleImageView) itemView.findViewById(R.id.recycle_iv);
+            circleImageView = (CircleImageView) itemView.findViewById(R.id.recycle_iv);
         }
     }
+
 
     @Override
     public int getItemViewType(int position) {
         return super.getItemViewType(position);
     }
 
-    /*   public void setData(List<MGemContact> list){
-        mGemContacts.addAll(list);
-        notifyDataSetChanged();
-    }*/
+     OnItemClickListener mOnItemClickListener;
 
+    void setOnItemClickListener(OnItemClickListener mOnItemClickListener) {
+        this.mOnItemClickListener = mOnItemClickListener;
+    }
+
+    interface OnItemClickListener {
+        void onItemLongClick(View view, int position);
+    }
 }

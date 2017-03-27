@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        findViewById(R.id.btn_loader).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.iv_add).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 hasReadContactsPermission();
@@ -58,6 +58,24 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setHasFixedSize(true);
         contactAdapter = new MGemContactAdapter(this, mGemContacts);
+        contactAdapter.setOnItemClickListener(new MGemContactAdapter.OnItemClickListener() {
+
+            @Override
+            public void onItemLongClick(View view, final int position) {
+                new AlertDialog.Builder(MainActivity.this).setMessage("确定要删除当前联系人吗？").setPositiveButton("是", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mGemContacts.remove(position);
+                        contactAdapter.notifyDataSetChanged();
+                    }
+                }).setNegativeButton("否", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).create().show();
+            }
+        });
         recyclerView.setAdapter(contactAdapter);
     }
 
