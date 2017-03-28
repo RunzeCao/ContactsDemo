@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -33,7 +34,7 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_READ_CONTACTS_PERMISSIONS = 1;
@@ -41,17 +42,16 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private List<MGemContact> mGemContacts = new ArrayList<>();
     private MGemContactAdapter contactAdapter;
     RecyclerView recyclerView;
+    FloatingActionButton fab;
+    boolean isClose = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        findViewById(R.id.iv_add).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                hasReadContactsPermission();
-            }
-        });
+        findViewById(R.id.iv_add).setOnClickListener(this);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(this);
         recyclerView = (RecyclerView) findViewById(R.id.recycle);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
@@ -117,6 +117,26 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
         return new CursorLoader(this, contactData, null, null, null, null);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.iv_add:
+                hasReadContactsPermission();
+                break;
+            case R.id.fab:
+                if (isClose){
+                    isClose = false;
+                    fab.setSelected(true);
+                }else {
+                    isClose = true;
+                    fab.setSelected(false);
+                }
+                break;
+            default:
+                break;
+        }
     }
 
 

@@ -4,38 +4,95 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context="com.metagem.contactsdemo.MainActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:contentInsetStart="0dp"
+            app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+            app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <ImageView
+                        android:id="@+id/setting_back_iv"
+                        android:layout_width="45dip"
+                        android:layout_height="45dip"
+                        android:layout_alignParentStart="true"
+                        android:padding="12dip"
+                        android:scaleType="fitCenter"
+                        android:src="@mipmap/notify_back" />
+
+                    <TextView
+                        android:id="@+id/setting_title_tv"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentTop="true"
+                        android:layout_centerHorizontal="true"
+                        android:padding="10dp"
+                        android:text="SOS安全模式"
+                        android:textColor="#ffffff"
+                        android:textSize="20sp" />
+
+                    <ImageView
+                        android:id="@+id/iv"
+                        android:layout_width="45dip"
+                        android:layout_height="45dip"
+                        android:layout_alignParentEnd="true"
+                        android:contentDescription="@null"
+                        android:padding="12dip"
+                        android:scaleType="fitCenter"
+                        android:src="@mipmap/ic_question" />
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/frg_status_header"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/colorPrimary">
+
+                    <ImageView
+                        android:id="@+id/frg_status_logo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:background="@color/colorPrimary"
+                        android:contentDescription="@null"
+                        android:padding="15dp"
+                        android:scaleType="fitCenter"
+                        android:src="@mipmap/ic_sos" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:paddingBottom="50dp"
+                        android:text="22" />
+
+                </RelativeLayout>
+            </LinearLayout>
+        </android.support.v7.widget.Toolbar>
+    </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <RelativeLayout
-            android:id="@+id/frg_status_header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/colorPrimary">
-
-            <ImageView
-                android:id="@+id/frg_status_logo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:background="@color/colorPrimary"
-                android:padding="15dp"
-                android:scaleType="fitCenter"
-                android:src="@mipmap/ic_sos" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerInParent="true"
-                android:paddingBottom="50dp"
-                android:text="22" />
-
-        </RelativeLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -86,13 +143,19 @@
             android:text="[我] 感到不安全"
             android:textSize="16sp" />
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom|end"
-            android:layout_margin="16dp"
-            app:layout_anchor="@id/frg_status_header"
-            app:srcCompat="@android:drawable/ic_dialog_email" />
+
     </LinearLayout>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="15dp"
+        android:src="@drawable/selector_src"
+        app:backgroundTint="@drawable/selector"
+        app:borderWidth="0dip"
+        app:elevation="6dip"
+        app:fabSize="normal"
+        app:layout_anchor="@id/toolbar"
+        app:layout_anchorGravity="center|end|bottom" />
 </android.support.design.widget.CoordinatorLayout>
