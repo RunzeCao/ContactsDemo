@@ -11,143 +11,189 @@
         android:layout_height="wrap_content">
 
         <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
+            android:id="@+id/toolbar_sos"
+            android:paddingTop="25dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:contentInsetStart="0dp"
+            app:layout_scrollFlags="scroll|enterAlways"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-            <LinearLayout
+
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical">
+                android:layout_height="wrap_content">
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                <ImageView
+                    android:id="@+id/sos_back_iv"
+                    android:layout_width="45dip"
+                    android:layout_height="45dip"
+                    android:layout_alignParentStart="true"
+                    android:padding="12dip"
+                    android:scaleType="fitCenter"
+                    android:src="@mipmap/notify_back"
+                    android:contentDescription="@null" />
 
-                    <ImageView
-                        android:id="@+id/setting_back_iv"
-                        android:layout_width="45dip"
-                        android:layout_height="45dip"
-                        android:layout_alignParentStart="true"
-                        android:padding="12dip"
-                        android:scaleType="fitCenter"
-                        android:src="@mipmap/notify_back" />
-
-                    <TextView
-                        android:id="@+id/setting_title_tv"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentTop="true"
-                        android:layout_centerHorizontal="true"
-                        android:padding="10dp"
-                        android:text="SOS安全模式"
-                        android:textColor="#ffffff"
-                        android:textSize="20sp" />
-
-                    <ImageView
-                        android:id="@+id/iv"
-                        android:layout_width="45dip"
-                        android:layout_height="45dip"
-                        android:layout_alignParentEnd="true"
-                        android:contentDescription="@null"
-                        android:padding="12dip"
-                        android:scaleType="fitCenter"
-                        android:src="@mipmap/ic_question" />
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:id="@+id/frg_status_header"
-                    android:layout_width="match_parent"
+                <TextView
+                    android:id="@+id/sos_title_tv"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@color/colorPrimary">
+                    android:layout_alignParentTop="true"
+                    android:layout_centerHorizontal="true"
+                    android:padding="10dp"
+                    android:text="SOS安全模式"
+                    android:textColor="#ffffff"
+                    android:textSize="20sp" />
 
-                    <ImageView
-                        android:id="@+id/frg_status_logo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:background="@color/colorPrimary"
-                        android:contentDescription="@null"
-                        android:padding="15dp"
-                        android:scaleType="fitCenter"
-                        android:src="@mipmap/ic_sos" />
+                <ImageView
+                    android:id="@+id/sos_help_iv"
+                    android:layout_width="45dip"
+                    android:layout_height="45dip"
+                    android:layout_alignParentEnd="true"
+                    android:contentDescription="@null"
+                    android:padding="12dip"
+                    android:scaleType="fitCenter"
+                    android:src="@mipmap/ic_question" />
+            </RelativeLayout>
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:paddingBottom="50dp"
-                        android:text="22" />
-
-                </RelativeLayout>
-            </LinearLayout>
         </android.support.v7.widget.Toolbar>
-    </android.support.design.widget.AppBarLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
-
-
-        <TextView
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:id="@+id/sos_header_rl"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="15dp"
-            android:paddingTop="15dp"
-            android:text="添加安全联系人"
-            android:textSize="16sp" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:background="@color/colorPrimary">
 
             <ImageView
-                android:id="@+id/iv_add"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:layout_margin="15dp"
-                android:contentDescription="@null"
-                android:src="@mipmap/ic_add" />
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/recycle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:scrollbars="none" />
-        </LinearLayout>
+                android:layout_centerInParent="true"
+                android:background="@color/colorPrimary"
+                android:contentDescription="@null"
+                android:padding="15dp"
+                android:scaleType="fitCenter"
+                android:src="@mipmap/ic_sos" />
 
-        <View
+            <TextView
+                android:id="@+id/sos_count_iv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:paddingBottom="50dp"
+                android:text="22" />
+
+        </RelativeLayout>
+    </android.support.design.widget.AppBarLayout>
+
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/colorPrimaryDark" />
-
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingStart="15dp"
-            android:paddingTop="15dp"
-            android:text="短信和坐标"
-            android:textSize="16sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingStart="15dp"
-            android:paddingTop="15dp"
-            android:text="[我] 感到不安全"
-            android:textSize="16sp" />
+            android:orientation="vertical">
 
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="15dp"
+                android:text="添加安全联系人"
+                android:textColor="#be9e6f"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="15dp"
+        >
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/sos_add_iv"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:contentDescription="@null"
+                        android:src="@mipmap/ic_add" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:paddingTop="8dp"
+                        android:textColor="#333333"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/sos_recycle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#999999" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="15dp"
+                android:text="短信和坐标"
+                android:textColor="#be9e6f"
+                android:textSize="14sp" />
+
+
+            <RadioGroup
+                android:id="@+id/sos_rg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <RadioButton
+                    android:id="@+id/sos_rb_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:button="@null"
+                    android:drawableEnd="@drawable/selector_sms_drawable"
+                    android:drawablePadding="30dp"
+                    android:padding="15dp"
+                    android:text="[我] 感到不安全,感到不安全,感到不安全,感到不安全"
+                    android:textColor="@drawable/selector_sms_text"
+                    android:textSize="14sp" />
+
+                <RadioButton
+                    android:id="@+id/sos_rb_2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:button="@null"
+                    android:drawableEnd="@drawable/selector_sms_drawable"
+                    android:drawablePadding="30dp"
+                    android:padding="15dp"
+                    android:text="[我] 感到不安全,感到不安全,感到不安全,感到不安全"
+                    android:textColor="@drawable/selector_sms_text"
+                    android:textSize="14sp" />
+            </RadioGroup>
+
+
+        </LinearLayout>
+    </android.support.v4.widget.NestedScrollView>
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
+        android:id="@+id/sos_open_fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="15dp"
@@ -156,6 +202,7 @@
         app:borderWidth="0dip"
         app:elevation="6dip"
         app:fabSize="normal"
-        app:layout_anchor="@id/toolbar"
+        app:layout_anchor="@id/sos_header_rl"
         app:layout_anchorGravity="center|end|bottom" />
+
 </android.support.design.widget.CoordinatorLayout>

@@ -16,6 +16,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract;
+import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -26,6 +27,8 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import java.io.FileDescriptor;
@@ -34,25 +37,25 @@ import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>, View.OnClickListener, RadioGroup.OnCheckedChangeListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_READ_CONTACTS_PERMISSIONS = 1;
     private Uri contactData;
     private List<MGemContact> mGemContacts = new ArrayList<>();
     private MGemContactAdapter contactAdapter;
-    RecyclerView recyclerView;
-    FloatingActionButton fab;
-    boolean isClose = true;
+    private RecyclerView recyclerView;
+    private FloatingActionButton fab;
+    private RadioButton radioButton1, radioButton2;
+    private boolean isClose = true;
+    private String messageContent;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        findViewById(R.id.iv_add).setOnClickListener(this);
-        fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(this);
-        recyclerView = (RecyclerView) findViewById(R.id.recycle);
+        initView();
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerView.setLayoutManager(linearLayoutManager);
@@ -77,6 +80,19 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             }
         });
         recyclerView.setAdapter(contactAdapter);
+    }
+
+    private void initView() {
+        findViewById(R.id.sos_add_iv).setOnClickListener(this);
+        findViewById(R.id.sos_help_iv).setOnClickListener(this);
+        findViewById(R.id.sos_back_iv).setOnClickListener(this);
+        fab = (FloatingActionButton) findViewById(R.id.sos_open_fab);
+        fab.setOnClickListener(this);
+        recyclerView = (RecyclerView) findViewById(R.id.sos_recycle);
+        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.sos_rg);
+        radioGroup.setOnCheckedChangeListener(this);
+        radioButton1 = (RadioButton) findViewById(R.id.sos_rb_1);
+        radioButton2 = (RadioButton) findViewById(R.id.sos_rb_2);
     }
 
     @Override
@@ -122,19 +138,36 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.iv_add:
+            case R.id.sos_back_iv:
+                finish();
+                break;
+            case R.id.sos_help_iv:
+                break;
+            case R.id.sos_add_iv:
                 hasReadContactsPermission();
                 break;
-            case R.id.fab:
-                if (isClose){
+            case R.id.sos_open_fab:
+                if (isClose) {
                     isClose = false;
                     fab.setSelected(true);
-                }else {
+                } else {
                     isClose = true;
                     fab.setSelected(false);
                 }
                 break;
             default:
+                break;
+        }
+    }
+
+    @Override
+    public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
+        switch (checkedId) {
+            case R.id.sos_rb_1:
+                messageContent = (String) radioButton1.getText();
+                break;
+            case R.id.sos_rb_2:
+                messageContent = (String) radioButton2.getText();
                 break;
         }
     }
