@@ -9,12 +9,11 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Toast;
 
-public class SosStartActivity extends AppCompatActivity {
+public class SosStartActivity extends CheckPermissionsActivity {
 
 
     private static final int REQUEST_CODE_SEND_SMS_PERMISSIONS = 1;
@@ -34,7 +33,6 @@ public class SosStartActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 hasReadContactsPermission();
-
             }
 
 

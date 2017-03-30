@@ -13,8 +13,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.provider.ContactsContract;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
@@ -25,15 +23,18 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.telephony.SmsManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.amap.api.location.AMapLocation;
+import com.amap.api.location.AMapLocationClient;
+
 import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,13 +43,14 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     private static final String TAG = MainActivity.class.getSimpleName();
     private static final int REQUEST_CODE_READ_CONTACTS_PERMISSIONS = 1;
     private Uri contactData;
-    private List<MGemContact> mGemContacts = new ArrayList<>();
+    private List<MGemContact> mGemContacts;
     private MGemContactAdapter contactAdapter;
-    private RecyclerView recyclerView;
     private FloatingActionButton fab;
     private RadioButton radioButton1, radioButton2;
     private boolean isClose = true;
-    private String messageContent;
+    private String messageContent1, messageContent2;
+    private String url;
+    public AMapLocationClient mLocationClient = null;
 
 
     @Override
@@ -56,10 +58,31 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        initData();
+    }
+
+
+    private void initView() {
+        findViewById(R.id.sos_add_iv).setOnClickListener(this);
+        findViewById(R.id.sos_help_iv).setOnClickListener(this);
+        findViewById(R.id.sos_back_iv).setOnClickListener(this);
+        fab = (FloatingActionButton) findViewById(R.id.sos_open_fab);
+        fab.setOnClickListener(this);
+        RecyclerView recyclerView = (RecyclerView) findViewById(R.id.sos_recycle);
+        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.sos_rg);
+        radioGroup.setOnCheckedChangeListener(this);
+        radioButton1 = (RadioButton) findViewById(R.id.sos_rb_1);
+        radioButton2 = (RadioButton) findViewById(R.id.sos_rb_2);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerView.setLayoutManager(linearLayoutManager);
         recyclerView.setHasFixedSize(true);
+        if (Utils.isEmpty(PrefUtils.getItemBean(this))) {
+            mGemContacts = new ArrayList<>();
+        } else {
+            mGemContacts = (List<MGemContact>) PrefUtils.str2Object(PrefUtils.getItemBean(this));
+        }
+
         contactAdapter = new MGemContactAdapter(this, mGemContacts);
         contactAdapter.setOnItemClickListener(new MGemContactAdapter.OnItemClickListener() {
 
@@ -69,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         mGemContacts.remove(position);
+                        PrefUtils.saveItemBean(MainActivity.this, PrefUtils.obj2String(mGemContacts));
                         contactAdapter.notifyDataSetChanged();
                     }
                 }).setNegativeButton("否", new DialogInterface.OnClickListener() {
@@ -82,18 +106,32 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         recyclerView.setAdapter(contactAdapter);
     }
 
-    private void initView() {
-        findViewById(R.id.sos_add_iv).setOnClickListener(this);
-        findViewById(R.id.sos_help_iv).setOnClickListener(this);
-        findViewById(R.id.sos_back_iv).setOnClickListener(this);
-        fab = (FloatingActionButton) findViewById(R.id.sos_open_fab);
-        fab.setOnClickListener(this);
-        recyclerView = (RecyclerView) findViewById(R.id.sos_recycle);
-        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.sos_rg);
-        radioGroup.setOnCheckedChangeListener(this);
-        radioButton1 = (RadioButton) findViewById(R.id.sos_rb_1);
-        radioButton2 = (RadioButton) findViewById(R.id.sos_rb_2);
+    private void initData() {
+
+        mLocationClient = new AMapLocationClient(this.getApplicationContext());
+        AMapLocation location = mLocationClient.getLastKnownLocation();
+        if (location != null && location.getErrorCode() == 0) {
+            String longitude = String.valueOf(location.getLongitude());
+            String latitude = String.valueOf(location.getLatitude());
+            String address = location.getAddress();
+            url = getResources().getString(R.string.sos) + "http://ditu.amap.com/regeo?lng=" + longitude + "&lat=" + latitude;
+            messageContent1 = String.format(getResources().getString(R.string.sosMessage1), address);
+            messageContent2 = String.format(getResources().getString(R.string.sosMessage2), address);
+            radioButton1.setText(String.format("%s%s", messageContent1, url));
+            radioButton2.setText(String.format("%s%s", messageContent2, url));
+        } else {
+            if (location != null) {
+                Log.e(TAG, "定位失败" + "\n" + "错误码:" + location.getErrorCode()
+                        + "\n" + "错误信息:" + location.getErrorInfo()
+                        + "\n" + "错误描述:" + location.getLocationDetail());
+            } else {
+                Log.e(TAG, "location = null");
+            }
+
+        }
+
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -130,10 +168,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(this, contactData, null, null, null, null);
-    }
 
     @Override
     public void onClick(View v) {
@@ -164,40 +198,25 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
         switch (checkedId) {
             case R.id.sos_rb_1:
-                messageContent = (String) radioButton1.getText();
+                Log.d(TAG, "onCheckedChanged: ");
+                SmsManager smsManager = SmsManager.getDefault();
+                smsManager.sendTextMessage("13249094900", null, messageContent1, null, null);
+                smsManager.sendTextMessage("13249094900", null, url, null, null);
+                List<String> divideContents = smsManager.divideMessage(messageContent1);
+                for (String text : divideContents) {
+                    SmsManager.getDefault().sendTextMessage("18406666176", null, text, null, null);
+                }
+
                 break;
             case R.id.sos_rb_2:
-                messageContent = (String) radioButton2.getText();
+
                 break;
         }
     }
 
-
-    private static class MGemHandler extends Handler {
-        private final WeakReference<MainActivity> mActivity;
-        private List<MGemContact> mGemContacts;
-        private MGemContactAdapter contactAdapter;
-
-        MGemHandler(MainActivity activity, List<MGemContact> contacts, MGemContactAdapter mGemContactAdapter) {
-            mActivity = new WeakReference<MainActivity>(activity);
-            mGemContacts = contacts;
-            contactAdapter = mGemContactAdapter;
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            MainActivity activity = mActivity.get();
-            if (activity != null) {
-                switch (msg.what) {
-                    case 1:
-                        mGemContacts.add((MGemContact) msg.getData().getSerializable("1"));
-                        Log.d(TAG, "handleMessage:" + mGemContacts.size());
-                        //contactAdapter.setData(mGemContacts);
-                        contactAdapter.notifyDataSetChanged();
-                        break;
-                }
-            }
-        }
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return new CursorLoader(this, contactData, null, null, null, null);
     }
 
     @Override
@@ -227,41 +246,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             Uri imageUri = Uri.withAppendedPath(contactData, ContactsContract.Contacts.Photo.DISPLAY_PHOTO);
             Bitmap bitmap = loadContactPhoto(imageUri, 0);
-          /*  Message msg = new Message();
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("1", new MGemContact(name, phoneNumber, bitmap));
-            msg.setData(bundle);
-            msg.what = 1;
-            new MGemHandler(this, mGemContacts, contactAdapter).sendMessage(msg);*/
-            mGemContacts.add(new MGemContact(name, phoneNumber, bitmap));
+            mGemContacts.add(new MGemContact(name, phoneNumber, imageUri.toString()));
+            PrefUtils.saveItemBean(MainActivity.this, PrefUtils.obj2String(mGemContacts));
             Log.d(TAG, "mGemContacts: " + mGemContacts.size());
             contactAdapter.notifyDataSetChanged();
-            //iv.setImageBitmap(getContactPhoto(this, id, R.mipmap.ic_launcher));
-
             Log.d(TAG, "onLoadFinished: " + "联系人：" + name + "号码：" + phoneNumber);
         }
     }
-
-    private Bitmap loadContactPhoto(Uri imageUri, int imageSize) {
-        AssetFileDescriptor afd = null;
-        try {
-            afd = getContentResolver().openAssetFileDescriptor(imageUri, "r");
-            if (afd != null) {
-                // Reads and decodes the file to a Bitmap and scales it to the desired size
-                return decodeSampledBitmapFromDescriptor(afd.getFileDescriptor(), imageSize, imageSize);
-            }
-        } catch (FileNotFoundException e) {
-            //e.printStackTrace();
-            return BitmapFactory.decodeResource(getResources(), R.mipmap.no_photo);
-        }
-        return null;
-    }
-
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
 
     }
+
+
 
     public void hasReadContactsPermission() {
         if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
@@ -282,8 +280,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             MainActivity.this.startActivityForResult(intent, 1);
         }
 
-
     }
+
 
     private void showMessageOKCancel(String message, DialogInterface.OnClickListener okListener) {
         new AlertDialog.Builder(MainActivity.this)
@@ -292,6 +290,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 .setNegativeButton("Cancel", null)
                 .create()
                 .show();
+    }
+    private Bitmap loadContactPhoto(Uri imageUri, int imageSize) {
+        AssetFileDescriptor afd = null;
+        try {
+            afd = getContentResolver().openAssetFileDescriptor(imageUri, "r");
+            if (afd != null) {
+                return decodeSampledBitmapFromDescriptor(afd.getFileDescriptor(), imageSize, imageSize);
+            }
+        } catch (FileNotFoundException e) {
+            return BitmapFactory.decodeResource(getResources(), R.mipmap.no_photo);
+        }
+        return null;
     }
 
     public static Bitmap decodeSampledBitmapFromDescriptor(

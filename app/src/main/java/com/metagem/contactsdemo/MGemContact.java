@@ -1,19 +1,17 @@
 package com.metagem.contactsdemo;
 
 
-import android.graphics.Bitmap;
-
 import java.io.Serializable;
 
 class MGemContact implements Serializable {
     private String name;
     private String number;
-    private Bitmap photo;
+    private String photoUrl;
 
-    MGemContact(String name, String number, Bitmap photo) {
+    MGemContact(String name, String number, String photoUrl) {
         this.name = name;
         this.number = number;
-        this.photo = photo;
+        this.photoUrl = photoUrl;
     }
 
     public String getName() {
@@ -32,11 +30,11 @@ class MGemContact implements Serializable {
         this.number = number;
     }
 
-    public Bitmap getPhoto() {
-        return photo;
+    public String getPhotoUrl() {
+        return photoUrl;
     }
 
-    public void setPhoto(Bitmap photo) {
-        this.photo = photo;
+    public void setPhotoUrl(String photoUrl) {
+        this.photoUrl = photoUrl;
     }
 }
