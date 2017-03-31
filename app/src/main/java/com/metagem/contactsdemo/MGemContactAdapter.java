@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.FileDescriptor;
@@ -41,16 +42,13 @@ class MGemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         viewHolder.textView.setText(mGemContacts.get(position).getName());
         Bitmap bitmap = loadContactPhoto(context, Uri.parse(mGemContacts.get(position).getPhotoUrl()), 0);
         viewHolder.circleImageView.setImageBitmap(bitmap);
-        if (mOnItemClickListener != null) {
-            holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+        if (onDeleteClickListener != null) {
+            viewHolder.imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public boolean onLongClick(View v) {
-                    mOnItemClickListener.onItemLongClick(v, holder.getAdapterPosition());
-                    return false;
+                public void onClick(View v) {
+                    onDeleteClickListener.onDeleteClick(v, holder.getAdapterPosition());
                 }
             });
-
-
         }
 
     }
@@ -63,11 +61,13 @@ class MGemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
     private class NormalViewHolder extends RecyclerView.ViewHolder {
         private TextView textView;
         private CircleImageView circleImageView;
+        ImageView imageView;
 
         NormalViewHolder(View itemView) {
             super(itemView);
             textView = (TextView) itemView.findViewById(R.id.recycle_tv);
             circleImageView = (CircleImageView) itemView.findViewById(R.id.recycle_iv);
+            imageView = (ImageView) itemView.findViewById(R.id.item_delete);
         }
     }
 
@@ -77,14 +77,26 @@ class MGemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return super.getItemViewType(position);
     }
 
-    private OnItemClickListener mOnItemClickListener;
+    private OnDeleteClickListener onDeleteClickListener;
 
-    void setOnItemClickListener(OnItemClickListener mOnItemClickListener) {
-        this.mOnItemClickListener = mOnItemClickListener;
+    void setOnDeleteClickListener(OnDeleteClickListener onDeleteClickListener) {
+        this.onDeleteClickListener = onDeleteClickListener;
     }
 
-    interface OnItemClickListener {
-        void onItemLongClick(View view, int position);
+    interface OnDeleteClickListener {
+        void onDeleteClick(View view, int position);
+    }
+
+    void removeData(int position) {
+        mGemContacts.remove(position);
+        PrefUtils.saveItemBean(context, PrefUtils.obj2String(mGemContacts));
+        notifyItemRemoved(position);
+    }
+
+    void addItem(MGemContact mGemContact) {
+        mGemContacts.add(mGemContact);
+        PrefUtils.saveItemBean(context, PrefUtils.obj2String(mGemContacts));
+        notifyItemInserted(0);
     }
 
     private Bitmap loadContactPhoto(Context context, Uri imageUri, int imageSize) {
@@ -100,7 +112,7 @@ class MGemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return null;
     }
 
-    public static Bitmap decodeSampledBitmapFromDescriptor(
+    private static Bitmap decodeSampledBitmapFromDescriptor(
             FileDescriptor fileDescriptor, int reqWidth, int reqHeight) {
 
         final BitmapFactory.Options options = new BitmapFactory.Options();
@@ -111,8 +123,8 @@ class MGemContactAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         return BitmapFactory.decodeFileDescriptor(fileDescriptor, null, options);
     }
 
-    public static int calculateInSampleSize(BitmapFactory.Options options,
-                                            int reqWidth, int reqHeight) {
+    private static int calculateInSampleSize(BitmapFactory.Options options,
+                                             int reqWidth, int reqHeight) {
         final int height = options.outHeight;
         final int width = options.outWidth;
         int inSampleSize = 1;
